@@ -1,4 +1,8 @@
+
 from django.shortcuts import render
+from django.views.generic.edit import CreateView
+from django.views.generic.edit import UpdateView
+from django.views.generic.edit import DeleteView
 from .models import Finch
 
 # from django.http import HttpResponse
@@ -45,4 +49,18 @@ def finches_index(request):
 
 def finches_detail(request, finch_id):
     finch = Finch.objects.get(id=finch_id)
-    return render(request, 'finch/detail.html', { 'finch' : finch })
+    return render(request, 'finches/detail.html', { 'finch' : finch })
+
+# the CUDs in CRUD. __all__ replaces ['name', 'breed', 'description', 'age'] 
+class FinchCreate(CreateView):
+    model = Finch
+    fields = '__all__'
+    # success_url = '/finches/'
+
+class FinchUpdate(UpdateView):
+    model = Finch
+    fields = ['type', 'description', 'age']
+
+class FinchDelete(DeleteView):
+    model = Finch
+    success_url = '/finches/'        
