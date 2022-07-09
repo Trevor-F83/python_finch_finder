@@ -3,7 +3,10 @@ from django.shortcuts import render, redirect
 from django.views.generic.edit import CreateView
 from django.views.generic.edit import UpdateView
 from django.views.generic.edit import DeleteView
-from .models import Finch
+from django.views.generic import ListView
+from django.views.generic.detail import DetailView
+
+from .models import Finch, Toy
 from .forms import FeedingForm
 
 # from django.http import HttpResponse
@@ -51,10 +54,12 @@ def finches_index(request):
 def finches_detail(request, finch_id):
     finch = Finch.objects.get(id=finch_id)
     # instnatiate FeedingForm to be rendered in template
+    toys_finch_doesnt_have = Toy.objects.exclude(id_in = finch.toys.all().values_list('id'))
     feeding_form = FeedingForm()
     return render(request, 'finches/detail.html', { 
         #include finch and feeding_form 
-        'finch': finch, 'feeding_form': feeding_form
+        'finch': finch, 'feeding_form': feeding_form,
+        'toys': toys_finch_doesnt_have
     })
 
 def add_feeding(request, finch_id):
@@ -67,7 +72,18 @@ def add_feeding(request, finch_id):
     new_feeding = form.save(commit=False)
     new_feeding.finch_id = finch_id
     new_feeding.save()
-  return redirect('detail', finch_id=finch_id)  
+  return redirect('detail', finch_id=finch_id) 
+
+  
+def assoc_toy(request, finch_id, toy_id):
+  # Note that you can pass a toy's id instead of the whole object
+  Finch.objects.get(id=finch_id).toys.add(toy_id)
+  return redirect('detail', finch_id=finch_id)
+
+
+def assoc_toy_delete(request, finch_id, toy_id):
+  Finch.objects.get(id=finch_id).toys.remove(toy_id)
+  return redirect('detail', finch_id=finch_id) 
 
 # the CUDs in CRUD. __all__ replaces ['name', 'breed', 'description', 'age'] 
 class FinchCreate(CreateView):
@@ -81,4 +97,26 @@ class FinchUpdate(UpdateView):
 
 class FinchDelete(DeleteView):
     model = Finch
-    success_url = '/finches/'        
+    success_url = '/finches/'   
+
+class ToyList(ListView):
+  model = Toy
+  template_name = 'toys/index.html'
+
+class ToyDetail(DetailView):
+  model = Toy
+  template_name = 'toys/detail.html'
+
+class ToyCreate(CreateView):
+    model = Toy
+    fields = ['name', 'color']
+
+
+class ToyUpdate(UpdateView):
+    model = Toy
+    fields = ['name', 'color']
+
+
+class ToyDelete(DeleteView):
+    model = Toy
+    success_url = '/toys/'     
