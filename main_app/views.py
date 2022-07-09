@@ -1,4 +1,5 @@
 
+from distutils.log import error
 from django.shortcuts import render, redirect
 from django.views.generic.edit import CreateView
 from django.views.generic.edit import UpdateView
@@ -6,9 +7,14 @@ from django.views.generic.edit import DeleteView
 from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 
-from .models import Finch, Toy
+import uuid
+import boto3
+
+from .models import Finch, Toy, Photo
 from .forms import FeedingForm
 
+S3_BASE_URL = 'https://s3.us-east-1.amazonaws.com/'
+BUCKET = 'finchfindertrevor1'
 # from django.http import HttpResponse
 
 # #Define home view
@@ -85,6 +91,31 @@ def assoc_toy_delete(request, finch_id, toy_id):
   Finch.objects.get(id=finch_id).toys.remove(toy_id)
   return redirect('detail', finch_id=finch_id) 
 
+def add_photo(request, finch_id):
+    #collect photo file data
+    photo_file = request.FILES.get('photo-file', None)
+    #conditional logid determines if file is present
+    if photo_file:
+    #if present, create reference to the boto3 collection
+        s3 = boto3.client('s3')
+        #create unique id for each photo
+        key = uuid.uuid4().hex[:6] + photo_file.name[photo_file.name.rfind('.'):]
+        #upload pfoto file to aws s3
+        try: 
+        #if successful
+            s3.upload_fileobj(photo_file, BUCKET, key)
+        #take exchange url & save it to database
+            url = f"{S3_BASE_URL}{BUCKET}/{key}"        
+            #1) create photo instance with photo model & provide finch_id as foreign key value
+            photo = Photo(url=url, finch_id=finch_id)
+            #2) save photo instance to database
+            photo.save()
+        except Exception as error:
+            print("Error uploading photo: ", error)
+            return redirect('detail', finch_id=finch_id)
+        #print error messsage
+    return redirect('detail', finch_id=finch_id)
+    #redirect user to origin page
 # the CUDs in CRUD. __all__ replaces ['name', 'breed', 'description', 'age'] 
 class FinchCreate(CreateView):
     model = Finch
