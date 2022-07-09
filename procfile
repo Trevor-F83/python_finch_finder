@@ -1,2 +1,2 @@
 
-web : gunicorn finch_finder.wsgi
+web : gunicorn finch-finder-trevor.wsgi
