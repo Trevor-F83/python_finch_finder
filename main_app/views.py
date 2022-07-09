@@ -6,6 +6,10 @@ from django.views.generic.edit import UpdateView
 from django.views.generic.edit import DeleteView
 from django.views.generic import ListView
 from django.views.generic.detail import DetailView
+from django.contrib.auth import login
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 import uuid
 import boto3
@@ -52,11 +56,12 @@ def about(request):
 #   Finch('Raven', 'Strawberry Finch', 'Not a raven, nor made of strawberrys, but is red!', 4)
 # ]
 
-
+@login_required
 def finches_index(request):
-    finches = Finch.objects.all()
+    finches = Finch.objects.filter(user=request.user)
     return render(request, 'finches/index.html', {'finches' : finches})    
 
+@login_required
 def finches_detail(request, finch_id):
     finch = Finch.objects.get(id=finch_id)
     # instnatiate FeedingForm to be rendered in template
@@ -68,6 +73,7 @@ def finches_detail(request, finch_id):
         'toys': toys_finch_doesnt_have
     })
 
+@login_required
 def add_feeding(request, finch_id):
   # create the ModelForm using the data in request.POST
   form = FeedingForm(request.POST)
@@ -80,17 +86,18 @@ def add_feeding(request, finch_id):
     new_feeding.save()
   return redirect('detail', finch_id=finch_id) 
 
-  
+@login_required 
 def assoc_toy(request, finch_id, toy_id):
   # Note that you can pass a toy's id instead of the whole object
   Finch.objects.get(id=finch_id).toys.add(toy_id)
   return redirect('detail', finch_id=finch_id)
 
-
+@login_required
 def assoc_toy_delete(request, finch_id, toy_id):
   Finch.objects.get(id=finch_id).toys.remove(toy_id)
   return redirect('detail', finch_id=finch_id) 
 
+@login_required
 def add_photo(request, finch_id):
     #collect photo file data
     photo_file = request.FILES.get('photo-file', None)
@@ -112,42 +119,61 @@ def add_photo(request, finch_id):
             photo.save()
         except Exception as error:
             print("Error uploading photo: ", error)
+                 #print error messsage
             return redirect('detail', finch_id=finch_id)
-        #print error messsage
-    return redirect('detail', finch_id=finch_id)
     #redirect user to origin page
+    return redirect('detail', finch_id=finch_id)
+
+def signup(request):
+    error_message = ''
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('index')
+        else:
+            error_message = 'Invalid info'
+    form = UserCreationForm()
+    context = {'form': form, 'error_message': error_message}
+    return render(request, 'registration/signup.html', context)
+
 # the CUDs in CRUD. __all__ replaces ['name', 'breed', 'description', 'age'] 
-class FinchCreate(CreateView):
+class FinchCreate(LoginRequiredMixin, CreateView):
     model = Finch
     fields = '__all__'
     # success_url = '/finches/'
 
-class FinchUpdate(UpdateView):
+class FinchUpdate(LoginRequiredMixin, UpdateView):
     model = Finch
-    fields = ['type', 'description', 'age']
+    fields = ['name', 'type', 'description', 'age']
 
-class FinchDelete(DeleteView):
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+class FinchDelete(LoginRequiredMixin, DeleteView):
     model = Finch
     success_url = '/finches/'   
 
-class ToyList(ListView):
+class ToyList(LoginRequiredMixin, ListView):
   model = Toy
   template_name = 'toys/index.html'
 
-class ToyDetail(DetailView):
+class ToyDetail(LoginRequiredMixin, DetailView):
   model = Toy
   template_name = 'toys/detail.html'
 
-class ToyCreate(CreateView):
+class ToyCreate(LoginRequiredMixin, CreateView):
     model = Toy
     fields = ['name', 'color']
 
 
-class ToyUpdate(UpdateView):
+class ToyUpdate(LoginRequiredMixin, UpdateView):
     model = Toy
     fields = ['name', 'color']
 
 
-class ToyDelete(DeleteView):
+class ToyDelete(LoginRequiredMixin, DeleteView):
     model = Toy
     success_url = '/toys/'     
