@@ -54,7 +54,7 @@ def finches_index(request):
 def finches_detail(request, finch_id):
     finch = Finch.objects.get(id=finch_id)
     # instnatiate FeedingForm to be rendered in template
-    toys_finch_doesnt_have = Toy.objects.exclude(id_in = finch.toys.all().values_list('id'))
+    toys_finch_doesnt_have = Toy.objects.exclude(id__in = finch.toys.all().values_list('id'))
     feeding_form = FeedingForm()
     return render(request, 'finches/detail.html', { 
         #include finch and feeding_form 
