@@ -1,5 +1,6 @@
 
 from distutils.log import error
+from multiprocessing import context
 from django.shortcuts import render, redirect
 from django.views.generic.edit import CreateView
 from django.views.generic.edit import UpdateView
@@ -59,7 +60,7 @@ def about(request):
 @login_required
 def finches_index(request):
     finches = Finch.objects.filter(user=request.user)
-    return render(request, 'finches/index.html', {'finches' : finches})    
+    return render(request, 'finches/index.html', {'finches': finches})    
 
 @login_required
 def finches_detail(request, finch_id):
