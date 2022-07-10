@@ -123,7 +123,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-LOGIN_REDIRECT_URL = '/cats/'
+LOGIN_REDIRECT_URL = '/finches/'
 
 LOGOUT_REDIRECT_URL = '/'
  
