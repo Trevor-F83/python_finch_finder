@@ -43,19 +43,6 @@ def about(request):
     return render(request, 'about.html')
 
 
-# Add the Cat class & list and view function below the imports
-# class Finch:  # Note that parens are optional if not inheriting from another class
-#   def __init__(self, name, type, description, age):
-#     self.name = name
-#     self.type = type
-#     self.description = description
-#     self.age = age
-
-# finches = [
-#   Finch('Tuna', 'Blue Finch', 'It is, in fact, blue', 3),
-#   Finch('Loud', 'Saffron Finch', 'Not made from actual Saffron', 1),
-#   Finch('Raven', 'Strawberry Finch', 'Not a raven, nor made of strawberrys, but is red!', 4)
-# ]
 
 @login_required
 def finches_index(request):
@@ -81,7 +68,7 @@ def add_feeding(request, finch_id):
   # validate the form
   if form.is_valid():
     # don't save the form to the db until it
-    # has the cat_id assigned
+    # has the finch_id assigned
     new_feeding = form.save(commit=False)
     new_feeding.finch_id = finch_id
     new_feeding.save()
