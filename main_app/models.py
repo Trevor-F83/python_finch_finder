@@ -12,15 +12,18 @@ MEALS = (
 )
 
 # Create your models here.class Toy(models.Model):
+
+
 class Toy(models.Model):
-  name = models.CharField(max_length=50)
-  color = models.CharField(max_length=20)
+    name = models.CharField(max_length=50)
+    color = models.CharField(max_length=20)
 
-  def __str__(self):
-    return f'{self.color} {self.name}'
+    def __str__(self):
+        return f'{self.color} {self.name}'
 
-  def get_absolute_url(self):
-    return reverse('toys_detail', kwargs={'pk': self.id})
+    def get_absolute_url(self):
+        return reverse('toys_detail', kwargs={'pk': self.id})
+
 
 class Finch(models.Model):
     name = models.CharField(max_length=100)
@@ -29,7 +32,7 @@ class Finch(models.Model):
     age = models.IntegerField()
     toys = models.ManyToManyField(Toy)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    
+
     def fed_for_today(self):
         return self.feeding_set.filter(date=date.today()).count() >= len(MEALS)
 
@@ -37,9 +40,8 @@ class Finch(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('detail', kwargs={'finch_id' : self.id})
+        return reverse('detail', kwargs={'finch_id': self.id})
 
- 
 
 class Feeding(models.Model):
     date = models.DateField('feeding date')
@@ -47,18 +49,18 @@ class Feeding(models.Model):
         max_length=1,
         choices=MEALS,
         default=MEALS[0][0]
-        ) 
-    
+    )
+
     finch = models.ForeignKey(Finch, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.get_meal_display()} on {self.date}"  
+        return f"{self.get_meal_display()} on {self.date}"
 
       # change the default sort
     class Meta:
-        ordering = ['-date']    
+        ordering = ['-date']
 
-    
+
 class Photo(models.Model):
     url = models.CharField(max_length=200)
     finch = models.ForeignKey(Finch, on_delete=models.CASCADE)
